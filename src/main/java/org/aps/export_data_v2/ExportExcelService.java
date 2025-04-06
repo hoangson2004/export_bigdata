@@ -29,8 +29,7 @@ public class ExportExcelService {
         SXSSFWorkbook workbook = new SXSSFWorkbook(900000);
         ExportExcelUtil.createHeaderRow(workbook);
 
-        int batchSize = 10000;
-        long totalRecords = salaryRepository.count();
+        int batchSize = 50000;
         int totalBatches = (int) Math.ceil((double) 800000 / batchSize);
 
         List<CompletableFuture<Void>> futuresList = IntStream.range(0, totalBatches)
