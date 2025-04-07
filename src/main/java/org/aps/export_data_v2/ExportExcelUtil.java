@@ -1,15 +1,13 @@
 package org.aps.export_data_v2;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.aps.export_data_v2.entity.Salary;
 
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
@@ -96,11 +94,26 @@ public class ExportExcelUtil {
         }
     }
 
-    public static void autoSizeColumns(SXSSFWorkbook workbook) {
-        SXSSFSheet sheet = workbook.getSheet("Salary Information");
-        for (int i = 0; i < 4; i++) {
-            sheet.setColumnWidth(i, 256 * 15);
-        }
+
+    public static void createHeaderRow(SXSSFWorkbook workbook, SXSSFSheet sheet) {
+        Row row = sheet.createRow(0);
+        CellStyle style = workbook.createCellStyle();
+        XSSFFont font = (XSSFFont) workbook.createFont();
+        font.setBold(true);
+        font.setFontHeight(20);
+        style.setFont(font);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        createCell(row, 0, "Salary Information", style);
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
+
+        row = sheet.createRow(1);
+        font.setBold(true);
+        font.setFontHeight(16);
+        style.setFont(font);
+        createCell(row, 0, "Employee ID", style);
+        createCell(row, 1, "Salary", style);
+        createCell(row, 2, "From Date", style);
+        createCell(row, 3, "To Date", style);
     }
 
 

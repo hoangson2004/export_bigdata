@@ -1,4 +1,4 @@
-package org.aps.export_data_v2;
+package org.aps.export_data_v2.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
