@@ -7,12 +7,19 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.aps.export_data_v2.entity.ExportBatch;
 import org.aps.export_data_v2.entity.Salary;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class ExportExcelUtil {
     private XSSFWorkbook workbook;
@@ -117,4 +124,35 @@ public class ExportExcelUtil {
     }
 
 
+    public static String zipExcelFiles(List<ExportBatch> completedBatches, String jobUniqueId, String basePath) throws IOException {
+        String zipFileName = jobUniqueId + "_final.zip";
+        String zipFilePath = basePath + File.separator + jobUniqueId + File.separator + zipFileName;
+
+        try (FileOutputStream fos = new FileOutputStream(zipFilePath);
+             ZipOutputStream zos = new ZipOutputStream(fos)) {
+
+            for (ExportBatch batch : completedBatches) {
+                String batchFilePath = batch.getPartialFilePath();  // Đường dẫn tới file Excel của batch
+                if (batchFilePath != null) {
+                    File batchFile = new File(batchFilePath);
+                    if (batchFile.exists()) {
+                        try (FileInputStream fis = new FileInputStream(batchFile)) {
+                            ZipEntry zipEntry = new ZipEntry(batchFile.getName());
+                            zos.putNextEntry(zipEntry);
+
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = fis.read(buffer)) > 0) {
+                                zos.write(buffer, 0, length);
+                            }
+
+                            zos.closeEntry();
+                        }
+                    }
+                }
+            }
+        }
+
+        return zipFilePath;
+    }
 }

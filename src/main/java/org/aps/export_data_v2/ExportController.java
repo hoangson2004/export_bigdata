@@ -11,7 +11,6 @@
 
     import java.nio.file.Path;
     import java.nio.file.Paths;
-    import java.security.Principal;
     import java.util.HashMap;
     import java.util.Map;
 
@@ -77,7 +76,7 @@
             Resource resource = new FileSystemResource(path.toFile());
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"export_" + jobUniqueId + ".xlsx\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"export_" + jobUniqueId + ".zip\"")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(resource);
         }

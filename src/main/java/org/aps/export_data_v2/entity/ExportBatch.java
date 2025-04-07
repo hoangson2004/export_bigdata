@@ -24,7 +24,7 @@ public class ExportBatch {
     @Column(name = "batch_unique_id", unique = true, nullable = false)
     private String batchUniqueId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne()
     @JoinColumn(name = "job_id")
     private ExportJob exportJob;
 
