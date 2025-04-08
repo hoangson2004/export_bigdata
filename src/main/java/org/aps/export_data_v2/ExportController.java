@@ -22,7 +22,7 @@
         private final ExportExcelService exportExcelService;
 
         @PostMapping("/salaries")
-        public ResponseEntity<Map<String, Object>> exportSalaries() {
+        public ResponseEntity<?> exportSalaries() {
 
             ExportJob job = exportExcelService.createSalaryExportJob();
             exportExcelService.processExportJob(job.getJobUniqueId());
@@ -37,7 +37,7 @@
         }
 
         @GetMapping("/{jobUniqueId}")
-        public ResponseEntity<Map<String, Object>> getExportStatus(@PathVariable String jobUniqueId) {
+        public ResponseEntity<?> getExportStatus(@PathVariable String jobUniqueId) {
             ExportJob job = exportExcelService.getJobStatus(jobUniqueId);
 
             Map<String, Object> response = new HashMap<>();
@@ -55,7 +55,7 @@
         }
 
         @PostMapping("/{jobUniqueId}/retry")
-        public ResponseEntity<Map<String, String>> retryFailedBatches(@PathVariable String jobUniqueId) {
+        public ResponseEntity<?> retryFailedBatches(@PathVariable String jobUniqueId) {
             exportExcelService.retryFailedBatches(jobUniqueId);
 
             Map<String, String> response = new HashMap<>();

@@ -14,12 +14,11 @@ import java.util.Optional;
 public interface ExportBatchRepository extends JpaRepository<ExportBatch, Long> {
     List<ExportBatch> findByExportJobIdAndStatus(Long jobId, BatchStatus status);
 
-    Optional<ExportBatch> findByBatchUniqueId(String batchUniqueId);
 
-    @Query("SELECT b FROM ExportBatch b WHERE b.exportJob.id = :jobId AND b.status = :status AND b.retryCount < :maxRetries")
+    @Query("SELECT b FROM ExportBatch b WHERE b.exportJob.id = :jobId AND b.status IN :status AND b.retryCount < :maxRetries")
     List<ExportBatch> findBatchesForRetry(
             @Param("jobId") Long jobId,
-            @Param("status") BatchStatus status,
+            @Param("status") List<BatchStatus> status,
             @Param("maxRetries") Integer maxRetries
     );
 

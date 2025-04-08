@@ -16,8 +16,6 @@ import java.util.Optional;
 public interface ExportJobRepository extends JpaRepository<ExportJob, Long> {
     Optional<ExportJob> findByJobUniqueId(String jobUniqueId);
 
-    List<ExportJob> findByRequestedByAndStatus(String requestedBy, ExportStatus status);
-
-    @Query("SELECT e FROM ExportJob e WHERE e.status = :status AND e.createdAt < :timeout")
-    List<ExportJob> findStuckJobs(@Param("status") ExportStatus status, @Param("timeout") LocalDateTime timeout);
+    @Query("SELECT e FROM ExportJob e WHERE e.status IN :status")
+    List<ExportJob> findStuckJobs(@Param("status") List<ExportStatus> status);
 }

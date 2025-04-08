@@ -41,10 +41,10 @@ public class ExportExcelService {
     private final ExportBatchRepository exportBatchRepository;
     private final Executor asyncExecutor;
 
-    @Value("${app.export.batch-size:100000}")
+    @Value("${app.export.batch-size}")
     private int BATCH_SIZE;
 
-    @Value("${app.export.max-retries:3}")
+    @Value("${app.export.max-retries}")
     private int MAX_RETRIES;
 
     @Value("${app.storage.base-path:/tmp/exports}")
@@ -54,27 +54,31 @@ public class ExportExcelService {
         long totalRecords = salaryRepository.count();
         int totalBatches = (int) Math.ceil((double) totalRecords / BATCH_SIZE);
 
-        ExportJob job = new ExportJob();
-        job.setJobUniqueId(UUID.randomUUID().toString());
-        job.setRequestedBy("User");
-        job.setExportType("SALARY_EXCEL");
-        job.setTotalBatches(totalBatches);
-        job.setTotalRecords((int) totalRecords);
-
+        ExportJob job = ExportJob.builder()
+                .jobUniqueId(UUID.randomUUID().toString())
+                .requestedBy("User")
+                .exportType("SALARY_EXCEL")
+                .totalBatches(totalBatches)
+                .totalRecords((int) totalRecords)
+                .build();
         job = exportJobRepository.save(job);
 
         createJobDirectory(job.getJobUniqueId());
 
         List<ExportBatch> batches = new ArrayList<>();
         for (int i = 0; i < totalBatches; i++) {
-            ExportBatch batch = new ExportBatch();
-            batch.setBatchUniqueId(UUID.randomUUID().toString());
-            batch.setExportJob(job);
-            batch.setBatchNumber(i);
-            batch.setStartOffset(i * BATCH_SIZE);
-            batch.setEndOffset(Math.min((i + 1) * BATCH_SIZE, (int) totalRecords));
+            ExportBatch batch = ExportBatch.builder()
+                    .batchUniqueId(UUID.randomUUID().toString())
+                    .exportJob(job)
+                    .batchNumber(i)
+                    .startOffset(i*BATCH_SIZE)
+                    .status(BatchStatus.PENDING)
+                    .endOffset(Math.min((i + 1) * BATCH_SIZE, (int) totalRecords))
+                    .build();
+
             batches.add(batch);
         }
+        exportBatchRepository.saveAll(batches);
 
         for (ExportBatch batch : batches) {
             CompletableFuture.runAsync(() -> {
@@ -117,10 +121,8 @@ public class ExportExcelService {
             List<Salary> salaries = salaryRepository.findAllByOffsetRange(offset, limit);
 
             ExportExcelUtil.writeUserDataBatch(workbook, salaries, 2);
-
             String batchFilePath = saveBatchToFile(batch.getExportJob().getJobUniqueId(), batch.getBatchNumber(), workbook);
             batch.setPartialFilePath(batchFilePath);
-
             batch.setStatus(BatchStatus.COMPLETED);
             batch.setLastProcessedAt(LocalDateTime.now());
             exportBatchRepository.save(batch);
@@ -131,7 +133,6 @@ public class ExportExcelService {
 
         } catch (Exception e) {
             log.error("Error processing batch: {}", batch.getBatchUniqueId(), e);
-
             batch.setStatus(BatchStatus.FAILED);
             batch.setErrorMessage(e.getMessage());
             batch.setRetryCount(batch.getRetryCount() + 1);
@@ -202,8 +203,13 @@ public class ExportExcelService {
         ExportJob job = exportJobRepository.findByJobUniqueId(jobUniqueId)
                 .orElseThrow(() -> new RuntimeException("Export job not found"));
 
+        List<BatchStatus> listStatus = new ArrayList<>();
+        listStatus.add(BatchStatus.FAILED);
+        listStatus.add(BatchStatus.PENDING);
+        listStatus.add(BatchStatus.IN_PROGRESS);
+
         List<ExportBatch> failedBatches =
-                exportBatchRepository.findBatchesForRetry(job.getId(), BatchStatus.FAILED, MAX_RETRIES);
+                exportBatchRepository.findBatchesForRetry(job.getId(), listStatus, MAX_RETRIES);
 
         for (ExportBatch batch : failedBatches) {
                 CompletableFuture.runAsync(() -> {

@@ -101,29 +101,6 @@ public class ExportExcelUtil {
         }
     }
 
-
-    public static void createHeaderRow(SXSSFWorkbook workbook, SXSSFSheet sheet) {
-        Row row = sheet.createRow(0);
-        CellStyle style = workbook.createCellStyle();
-        XSSFFont font = (XSSFFont) workbook.createFont();
-        font.setBold(true);
-        font.setFontHeight(20);
-        style.setFont(font);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        createCell(row, 0, "Salary Information", style);
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
-
-        row = sheet.createRow(1);
-        font.setBold(true);
-        font.setFontHeight(16);
-        style.setFont(font);
-        createCell(row, 0, "Employee ID", style);
-        createCell(row, 1, "Salary", style);
-        createCell(row, 2, "From Date", style);
-        createCell(row, 3, "To Date", style);
-    }
-
-
     public static String zipExcelFiles(List<ExportBatch> completedBatches, String jobUniqueId, String basePath) throws IOException {
         String zipFileName = jobUniqueId + "_final.zip";
         String zipFilePath = basePath + File.separator + jobUniqueId + File.separator + zipFileName;
@@ -132,7 +109,7 @@ public class ExportExcelUtil {
              ZipOutputStream zos = new ZipOutputStream(fos)) {
 
             for (ExportBatch batch : completedBatches) {
-                String batchFilePath = batch.getPartialFilePath();  // Đường dẫn tới file Excel của batch
+                String batchFilePath = batch.getPartialFilePath();
                 if (batchFilePath != null) {
                     File batchFile = new File(batchFilePath);
                     if (batchFile.exists()) {
